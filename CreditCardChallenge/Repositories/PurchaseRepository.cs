@@ -17,35 +17,46 @@ namespace CreditCardChallenge.Repositories
         {
             _context = context;
         }
-        public void Add(int creditCardId, string storeName, double value)
-        {
-            var purchase = new Purchase
-            {
-                BuyDate = DateTime.UtcNow,
-                StoreName = storeName,
-                Value = value,
-                CreditCardId = creditCardId
-            };
 
+        public void Add(Purchase purchase)
+        {
             _context.Purchases.Add(purchase);
             _context.SaveChanges();
         }
-        public Purchase Get(int id, DateTime? buyDate, string userId)
+
+        public void Update(Purchase datePurchase)
         {
-            var query = _context.Purchases.Include(pur => pur.CreditCard).Where(t => t.Id == id).AsQueryable();
+            var purchase = Get(datePurchase.Id, datePurchase.UserId);
+            if (purchase != null)
+            {
+                purchase.BuyDate = datePurchase.BuyDate;
+                purchase.CreditCardId = datePurchase.CreditCardId;
+                purchase.StoreName = datePurchase.StoreName;
+                purchase.Value = datePurchase.Value;
+                _context.Purchases.Update(purchase);
+                _context.SaveChanges();
+            }
+        }
+
+        public void Delete(int purchaseId, string userId)
+        {
+            var purchase = Get(purchaseId, userId);
+            _context.Purchases.Remove(purchase);
+            _context.SaveChanges();
+        }
+
+        public Purchase Get(int purchaseId, string userId, DateTime? buyDate = null)
+        {
+            var query = _context.Purchases.Include(pur => pur.CreditCard).Where(t => t.Id == purchaseId && t.UserId == userId).AsQueryable();
 
             if (buyDate != null)
             {
                 query.Where(t => t.BuyDate == buyDate);
             }
 
-            var result = query.FirstOrDefault();
-
-            if (!ValidatePurchaseToUser(result.CreditCard, userId))
-                result = null;
-
-            return result;
+            return query.FirstOrDefault();
         }
+
         public List<Purchase> GetAll(String userId, int creditCardId, DateTime? buyDate, int? lastDays)
         {
             if (!buyDate.HasValue)
@@ -61,14 +72,7 @@ namespace CreditCardChallenge.Repositories
                     (!lastDays.HasValue ? t.BuyDate.Date == buyDate.Value.Date : t.BuyDate.Date >= buyDate.Value.Date)
                 ).AsQueryable();
 
-
-
             return query.ToList<Purchase>();
-        }
-
-        private bool ValidatePurchaseToUser(CreditCard creditCard, string userId)
-        {
-            return creditCard.UserId.Equals(userId);
         }
     }
 }

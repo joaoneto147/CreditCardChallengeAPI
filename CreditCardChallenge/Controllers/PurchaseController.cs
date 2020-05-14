@@ -22,12 +22,36 @@ namespace CreditCardChallenge.Controllers
             _userManager = userManager;
         }
 
+        [HttpPost]
+        public ActionResult Add([FromBody]PurchaseDTO purchaseDTO)
+        {
+            var purchase = purchaseDTO.getPurchase(GetUserId());
+            _purchaseRepository.Add(purchase);
+            return Created("", purchase);
+        }
+
+        [HttpDelete("{purchaseId}")]
+        public ActionResult Delete(int purchaseId)
+        {
+            _purchaseRepository.Delete(purchaseId, GetUserId());
+            return Ok();
+        }
+
+        [HttpPut("{purchaseId}")]
+        public ActionResult Update([FromBody] PurchaseDTO purchaseDTO, int purchaseId)
+        {
+            var purchase = purchaseDTO.getPurchase(GetUserId());
+            purchase.Id = purchaseId;
+
+            _purchaseRepository.Update(purchase);
+            return Ok();
+        }
+
         [Route("{purchaseId}")]
         [HttpGet]
         public ActionResult Get([FromQuery] DateTime buyDate, int purchaseId)
         {
-            var userId = _userManager.GetUserAsync(HttpContext.User).Result.Id;
-            var result = _purchaseRepository.Get(purchaseId, buyDate, userId);
+            var result = _purchaseRepository.Get(purchaseId, GetUserId(), buyDate);
             if (result != null)
                 return Ok(result);
             else
@@ -40,14 +64,17 @@ namespace CreditCardChallenge.Controllers
             if (!buyDate.HasValue && !lastDays.HasValue)
                 return BadRequest("Date filter not informed!");
 
-            var userId = _userManager.GetUserId(User);
-
-            var result = _purchaseRepository.GetAll(userId, creditCardId, buyDate, lastDays);
+            var result = _purchaseRepository.GetAll(GetUserId(), creditCardId, buyDate, lastDays);
 
             if (result == null)
                 return NotFound();
             else
-                return Ok(new {result});
+                return Ok(new { result });
+        }
+
+        private string GetUserId()
+        {
+            return _userManager.GetUserId(User);
         }
 
     }

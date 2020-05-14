@@ -23,6 +23,13 @@ namespace CreditCardChallenge.Repositories
             _context.SaveChanges();
         }
 
+        public void Delete(string userId, int creditCardId)
+        {
+            var creditCard = Get(userId, creditCardId);
+            _context.CreditCards.Remove(creditCard);
+            _context.SaveChanges();
+        }
+
         public CreditCard Get(string userId, int creditCardId)
         {            
             var result =  _context.CreditCards

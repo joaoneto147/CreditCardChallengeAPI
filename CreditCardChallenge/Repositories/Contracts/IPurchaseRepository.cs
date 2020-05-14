@@ -1,15 +1,15 @@
 ﻿using CreditCardChallenge.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CreditCardChallenge.Repositories.Contracts
 {
     public interface IPurchaseRepository
     {
-        void Add(int creditCardId, string storeName, double value);
-        Purchase Get(int id, DateTime ? buyDate, string userId);
-        public List<Purchase> GetAll(String userId, int creditCardId, DateTime? buyDate, int ? lastDays);
+        void Add(Purchase purchase);
+        void Delete(int purchaseId, string userId);
+        void Update(Purchase purchase);
+        Purchase Get(int purchaseId, string userId, DateTime ? buyDate);
+        public List<Purchase> GetAll(string userId, int creditCardId, DateTime? buyDate, int ? lastDays);
     }
 }

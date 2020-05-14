@@ -27,7 +27,7 @@ namespace CreditCardChallenge.Controllers
 
         [HttpPost]
         public ActionResult Add([FromBody]CreditCardDTO creditCardDTO)
-        {            
+        {
             var newCreditCard = new CreditCard
             {
                 Number = creditCardDTO.Number,
@@ -41,7 +41,25 @@ namespace CreditCardChallenge.Controllers
 
             _creditCardRepository.Add(newCreditCard);
             return Created("", newCreditCard);
-        }        
+        }
+
+        [HttpDelete("{creditCardId}")]
+        public ActionResult Delete(int creditCardId)
+        {
+            _creditCardRepository.Delete(
+                _userManager.GetUserAsync(HttpContext.User).Result.Id, 
+                creditCardId
+            );
+            return Ok();
+        }
+
+        [HttpPut("{creditCardId}")]
+        public ActionResult Update([FromBody] CreditCardDTO creditCardDTO)
+        {
+            return Ok();
+            //return Delete();
+        }
+
         [HttpGet("{creditCardId}")]
         public ActionResult Get(int creditCardId)
         {
@@ -61,15 +79,9 @@ namespace CreditCardChallenge.Controllers
             var creditCards = _creditCardRepository.GetAll(userId);
 
             if (creditCards != null)
-                return Ok(new {creditCards});
+                return Ok(new { creditCards });
             else
                 return NoContent();
-        }
-
-        [HttpGet("modelExemple")]
-        public ActionResult GetModel()
-        {
-            return Ok(new CreditCard());
         }
     }
 }
